@@ -2,7 +2,7 @@ stages:
   split:
     cmd: python src/data/data_split.py
     deps:
-    - data/raw_data
+    - data/raw_data/raw.csv
     - params.yaml
     - src/data/data_split.py
     outs:
