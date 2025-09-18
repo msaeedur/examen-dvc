@@ -1,0 +1,17 @@
+split:
+  test_size: 0.3
+  random_state: 85
+
+grid_search:
+  random_state: 85
+  param_grid:
+    n_estimators: [50, 100]
+    max_depth: [1, 10, 20]
+    min_samples_split: [2, 5]
+    min_samples_leaf: [1, 2]
+  cv: 3
+  scoring:
+    - neg_mean_squared_error
+    - r2
+  refit: neg_mean_squared_error
+  n_jobs: -1

@@ -4,14 +4,16 @@ import joblib
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import GridSearchCV
 import pandas as pd
+import yaml
+
+project_dir = Path(__file__).resolve().parents[2]
+params_file_path = f"{project_dir}/params.yaml"
 
 def main():
     """ Runs grid search to find the best model parms
     """
     logger = logging.getLogger(__name__)
     logger.info('Runs grid search to find the best RandomForestRegressor model parms')
-
-    project_dir = Path(__file__).resolve().parents[2]
 
     X_train_path = f"{project_dir}/data/processed_data/X_train_scaled.csv"
     y_train_path = f"{project_dir}/data/processed_data/y_train.csv"
@@ -29,25 +31,31 @@ def ensure_models_dir(output_folderpath):
     models_dir = Path(output_folderpath)
     models_dir.mkdir(parents=True, exist_ok=True)
 
-def get_model_and_grid():
-    model = RandomForestRegressor(random_state=87)
-    param_grid = {
-        'n_estimators': [50, 100, 200],
-        'max_depth': [None, 10, 20],
-        'min_samples_split': [2, 5],
-        'min_samples_leaf': [1, 2]
-    }
+def get_model_and_grid(model_params):
+
+    model = RandomForestRegressor(random_state=model_params['random_state'])
+    param_grid = model_params['param_grid']
+
+    # Convert YAML 'null' to Python None
+    if 'max_depth' in param_grid:
+        param_grid['max_depth'] = [
+            None if v == 'null' else v for v in param_grid['max_depth']
+        ]
+        
     return model, param_grid
 
 def run_gridsearch(X_train, y_train):
-    model, param_grid = get_model_and_grid()
+    params = load_params(params_file_path)
+    model_params = params['grid_search']
+
+    model, param_grid = get_model_and_grid(model_params)
     grid = GridSearchCV(
         model,
         param_grid,
-        cv=3,
-        scoring=['neg_mean_squared_error', 'r2'],
-        refit='neg_mean_squared_error',
-        n_jobs=-1
+        cv=model_params['cv'],
+        scoring=model_params['scoring'],
+        refit=model_params['refit'],
+        n_jobs=model_params['n_jobs']
     )
     logging.info("Starting GridSearchCV...")
     grid.fit(X_train, y_train)
@@ -73,6 +81,11 @@ def find_and_save_best_parms(X_train, y_train,output_folderpath):
     save_best_model(grid,output_folderpath)
 
     # return grid.best_estimator_
+
+def load_params(params_file='params.yaml'):
+    with open(params_file, 'r') as f:
+        params = yaml.safe_load(f)
+    return params
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

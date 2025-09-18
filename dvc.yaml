@@ -1,0 +1,52 @@
+stages:
+  split:
+    cmd: python src/data/data_split.py
+    deps:
+    - data/raw_data
+    - params.yaml
+    - src/data/data_split.py
+    outs:
+    - data/processed_data/X_test.csv
+    - data/processed_data/X_train.csv
+    - data/processed_data/y_test.csv
+    - data/processed_data/y_train.csv
+  normalize:
+    cmd: python src/data/normalize.py
+    deps:
+    - data/processed_data/X_test.csv
+    - data/processed_data/X_train.csv
+    - src/data/normalize.py
+    outs:
+    - data/processed_data/X_test_scaled.csv
+    - data/processed_data/X_train_scaled.csv
+  gridsearch:
+    cmd: python src/models/grid_search.py
+    deps:
+    - data/processed_data/X_train_scaled.csv
+    - data/processed_data/y_train.csv
+    - params.yaml
+    - src/models/grid_search.py
+    outs:
+    - models/best_model_parms.pkl
+  training:
+    cmd: python src/models/training.py
+    deps:
+    - data/processed_data/X_train_scaled.csv
+    - data/processed_data/y_train.csv
+    - models/best_model_parms.pkl
+    - src/models/training.py
+    outs:
+    - models/final_model.pkl
+  evaluate:
+    cmd: python src/models/evaluate.py
+    deps:
+    - data/processed_data/X_test_scaled.csv
+    - data/processed_data/y_test.csv
+    - models/best_model_parms.pkl
+    - models/final_model.pkl
+    - src/models/evaluate.py
+    outs:
+    - data/predictions.csv
+    metrics:
+    - metrics/scores.json:
+        cache: false
