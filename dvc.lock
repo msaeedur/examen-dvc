@@ -116,10 +116,6 @@ stages:
       hash: md5
       md5: 67c59bfd30634413a55851580e30689a
       size: 9775
-    - path: models/best_model_parms.pkl
-      hash: md5
-      md5: 456b0105937b2b14fc9a41f999393cb7
-      size: 90
     - path: models/final_model.pkl
       hash: md5
       md5: 6b7adaf4ba03c1f2d74aae7b129fd169
